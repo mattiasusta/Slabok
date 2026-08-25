@@ -1,8 +1,13 @@
 import nodemailer from "nodemailer";
 import { randomInt, createHash } from "crypto";
 
+// Porta 587 (STARTTLS) esplicita invece del preset "service: gmail" (che usa la 465):
+// alcuni host bloccano di default la 465 in uscita per prevenire spam.
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
