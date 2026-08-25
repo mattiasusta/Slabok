@@ -58,26 +58,41 @@ function isCloudinaryUrl(url: string): boolean {
   return url.startsWith(CLOUDINARY_URL_PREFIX);
 }
 
+// Campi modificabili sia in creazione che in modifica: compagnia e numero certificato
+// restano fissi dopo la creazione (identificano univocamente la segnalazione).
+const cardEditableFields = {
+  cardName: z.string().min(1, "Inserisci il nome della carta.").max(200),
+  grade: z.enum(GRADES, { errorMap: () => ({ message: "Seleziona un voto valido." }) }),
+  certUrl: z.string().url().max(500).optional().or(z.literal("")),
+  description: z.string().max(500).optional().or(z.literal("")),
+  photoUrl: z.string().refine(isCloudinaryUrl, "Carica una foto valida della carta.").optional().or(z.literal("")),
+  contactPhone: z.string().regex(phoneRegex, "Numero di telefono non valido.").optional().or(z.literal("")),
+  signed: z.boolean().optional().default(false),
+  signatureGrade: z.enum(GRADES).optional().or(z.literal("")),
+  certifyOwnership: z.literal(true, {
+    errorMap: () => ({ message: "Devi dichiarare che la carta è di tua proprietà." }),
+  }),
+};
+
+function requireSignatureGradeIfSigned(data: { signed?: boolean; signatureGrade?: string }) {
+  return !data.signed || !!data.signatureGrade;
+}
+
 export const createCardSchema = z
   .object({
     gradingCompany: z.enum(GRADING_COMPANIES),
     certNumber: z.string().min(1).max(40),
-    cardName: z.string().min(1, "Inserisci il nome della carta.").max(200),
-    grade: z.enum(GRADES, { errorMap: () => ({ message: "Seleziona un voto valido." }) }),
-    certUrl: z.string().url().max(500).optional().or(z.literal("")),
-    description: z.string().max(500).optional().or(z.literal("")),
-    photoUrl: z.string().refine(isCloudinaryUrl, "Carica una foto valida della carta.").optional().or(z.literal("")),
-    contactPhone: z.string().regex(phoneRegex, "Numero di telefono non valido.").optional().or(z.literal("")),
-    signed: z.boolean().optional().default(false),
-    signatureGrade: z.enum(GRADES).optional().or(z.literal("")),
-    certifyOwnership: z.literal(true, {
-      errorMap: () => ({ message: "Devi dichiarare che la carta è di tua proprietà." }),
-    }),
+    ...cardEditableFields,
   })
-  .refine((data) => !data.signed || !!data.signatureGrade, {
+  .refine(requireSignatureGradeIfSigned, {
     message: "Indica il voto della firma.",
     path: ["signatureGrade"],
   });
+
+export const updateCardSchema = z.object(cardEditableFields).refine(requireSignatureGradeIfSigned, {
+  message: "Indica il voto della firma.",
+  path: ["signatureGrade"],
+});
 
 export const registerSchema = z
   .object({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { gradeLabel } from "@/lib/validation";
 
@@ -65,13 +66,21 @@ export function CardList({ cards }: { cards: Card[] }) {
                 Segnalata il {new Date(card.createdAt).toLocaleDateString("it-IT")}
               </p>
             </div>
-            <button
-              onClick={() => handleDelete(card.id)}
-              disabled={deletingId === card.id}
-              className="shrink-0 text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
-            >
-              Rimuovi
-            </button>
+            <div className="flex shrink-0 gap-3">
+              <Link
+                href={`/dashboard/edit/${card.id}`}
+                className="text-xs font-medium text-indigo-600 hover:underline"
+              >
+                Modifica
+              </Link>
+              <button
+                onClick={() => handleDelete(card.id)}
+                disabled={deletingId === card.id}
+                className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+              >
+                Rimuovi
+              </button>
+            </div>
           </div>
           {card.photoUrl && (
             // eslint-disable-next-line @next/next/no-img-element

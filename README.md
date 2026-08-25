@@ -25,6 +25,7 @@ src/
     termini/page.tsx              Termini di Servizio
     dashboard/page.tsx           Elenco segnalazioni dell'utente (protetto)
     dashboard/new/page.tsx       Form nuova segnalazione (protetto)
+    dashboard/edit/[id]/page.tsx Modifica segnalazione esistente (protetto, solo proprietario)
     api/
       auth/[...nextauth]/        NextAuth
       register/route.ts          Registrazione (crea utente non verificato, invia codice)
@@ -32,9 +33,11 @@ src/
       resend-verification/route.ts  Reinvio codice
       check/route.ts             Verifica pubblica (GET, no auth)
       cards/route.ts             Lista + creazione segnalazioni (protetto)
-      cards/[id]/route.ts        Cancellazione segnalazione (protetto)
+      cards/[id]/route.ts        Modifica (PATCH) e cancellazione (DELETE) (protetto)
       upload/route.ts            Upload foto su Cloudinary (protetto)
-  components/                    Navbar, Footer, SearchForm, CardList, AdSlot,
+  components/                    Navbar (con le due schede "Verifica" / "Le mie segnalazioni"
+                                  per utenti autenticati), Footer, SearchForm, CardForm
+                                  (condiviso da creazione e modifica), CardList, AdSlot,
                                   CookieConsent, PasswordInput
   lib/                           prisma client, auth options, validazione, rate limit,
                                   uploads, email (invio codici verifica)
@@ -64,10 +67,13 @@ render.yaml                      Blueprint di deploy per Render
 ## Flussi utente
 
 1. **Vittima di furto**: accetta i Termini di Servizio e si registra (con conferma password) →
-   inserisce il codice a 6 cifre ricevuto via email → accede alla dashboard → segnala una carta
-   rubata (nome carta, compagnia, certificato, voto, foto/link di verifica/firma opzionali,
-   descrizione e telefono opzionali) dichiarando sotto la propria responsabilità di esserne il
-   legittimo proprietario → può vedere ed eliminare le proprie segnalazioni.
+   inserisce il codice a 6 cifre ricevuto via email → accede alla dashboard, con due schede
+   sempre visibili nella barra di navigazione ("Verifica carta rubata" e "Le mie segnalazioni")
+   → segnala una carta rubata (nome carta, compagnia, certificato, voto, foto/link di
+   verifica/firma opzionali, descrizione e telefono opzionali) dichiarando sotto la propria
+   responsabilità di esserne il legittimo proprietario → può vedere, modificare (tutti i campi
+   tranne compagnia e numero certificato, fissi dopo la creazione) ed eliminare le proprie
+   segnalazioni.
 2. **Acquirente (senza account)**: dalla home inserisce compagnia + numero certificato →
    riceve subito un esito ✅/⚠️ con foto, voto, eventuale link di verifica e recapito (se
    condiviso dalla vittima) → se ritiene la segnalazione errata, può contestarla direttamente
