@@ -20,19 +20,24 @@ src/
   app/
     page.tsx                    Home: form di verifica pubblico
     login/page.tsx               Login
-    register/page.tsx            Registrazione (con accettazione Termini di Servizio)
+    register/page.tsx            Registrazione (con conferma password e Termini di Servizio)
+    verifica-email/page.tsx      Inserimento codice di verifica email
     termini/page.tsx              Termini di Servizio
     dashboard/page.tsx           Elenco segnalazioni dell'utente (protetto)
     dashboard/new/page.tsx       Form nuova segnalazione (protetto)
     api/
       auth/[...nextauth]/        NextAuth
-      register/route.ts          Registrazione nuovo utente
+      register/route.ts          Registrazione (crea utente non verificato, invia codice)
+      verify-email/route.ts      Conferma codice di verifica
+      resend-verification/route.ts  Reinvio codice
       check/route.ts             Verifica pubblica (GET, no auth)
       cards/route.ts             Lista + creazione segnalazioni (protetto)
       cards/[id]/route.ts        Cancellazione segnalazione (protetto)
       upload/route.ts            Upload foto su Cloudinary (protetto)
-  components/                    Navbar, Footer, SearchForm, CardList, AdSlot
-  lib/                           prisma client, auth options, validazione, rate limit, uploads
+  components/                    Navbar, Footer, SearchForm, CardList, AdSlot,
+                                  CookieConsent, PasswordInput
+  lib/                           prisma client, auth options, validazione, rate limit,
+                                  uploads, email (invio codici verifica)
 prisma/
   schema.prisma                  Schema DB (User, StolenCard)
 render.yaml                      Blueprint di deploy per Render
@@ -41,13 +46,15 @@ render.yaml                      Blueprint di deploy per Render
 ## Schema database
 
 **User**
-- `id`, `email` (univoco), `passwordHash`, `acceptedTosAt`, `createdAt`
+- `id`, `email` (univoco), `passwordHash`, `isAdmin`, `emailVerifiedAt?` (null finché non
+  conferma il codice via email — il login è bloccato finché resta null),
+  `emailVerificationCodeHash?`, `emailVerificationCodeExpiresAt?`, `acceptedTosAt`, `createdAt`
 
 **StolenCard**
 - `id`, `gradingCompany` (PSA | BECKETT | CGC | TAG), `certNumber`, `cardName`, `grade`
   (Autentica oppure 1...10 con mezzi punti), `certUrl?` (link alla pagina di verifica sul sito
   della compagnia), `signed`, `signatureGrade?` (obbligatorio se `signed`), `description?`,
-  `photoUrl` (obbligatoria, URL Cloudinary), `contactPhone?`, `status` (active | resolved),
+  `photoUrl?` (facoltativa, URL Cloudinary), `contactPhone?`, `status` (active | resolved),
   `createdAt`, `reporterIp?` (solo per audit interno, mai esposto pubblicamente), `userId`
 - Vincolo univoco su `(gradingCompany, certNumber)` per evitare segnalazioni duplicate/spam.
 
@@ -56,11 +63,11 @@ render.yaml                      Blueprint di deploy per Render
 
 ## Flussi utente
 
-1. **Vittima di furto**: accetta i Termini di Servizio e si registra → accede alla dashboard →
-   segnala una carta rubata (nome carta, compagnia, certificato, voto, foto obbligatoria,
-   eventuale link di verifica, eventuale firma con relativo voto, descrizione e telefono
-   opzionali) dichiarando sotto la propria responsabilità di esserne il legittimo proprietario
-   → può vedere ed eliminare le proprie segnalazioni.
+1. **Vittima di furto**: accetta i Termini di Servizio e si registra (con conferma password) →
+   inserisce il codice a 6 cifre ricevuto via email → accede alla dashboard → segnala una carta
+   rubata (nome carta, compagnia, certificato, voto, foto/link di verifica/firma opzionali,
+   descrizione e telefono opzionali) dichiarando sotto la propria responsabilità di esserne il
+   legittimo proprietario → può vedere ed eliminare le proprie segnalazioni.
 2. **Acquirente (senza account)**: dalla home inserisce compagnia + numero certificato →
    riceve subito un esito ✅/⚠️ con foto, voto, eventuale link di verifica e recapito (se
    condiviso dalla vittima) → se ritiene la segnalazione errata, può contestarla direttamente
@@ -81,14 +88,17 @@ render.yaml                      Blueprint di deploy per Render
 - L'endpoint di verifica pubblico non espone mai email, id utente o IP della vittima.
 - Upload immagini: solo JPG/PNG/WEBP, max 5 MB, caricate direttamente su Cloudinary (mai
   scritte sul filesystem del server).
+- Verifica email obbligatoria: il login è bloccato finché l'utente non conferma il codice a
+  6 cifre ricevuto via email (scade dopo 15 minuti, confrontato tramite hash SHA-256, mai
+  salvato in chiaro); endpoint di verifica e reinvio protetti da rate limiting.
 
 ## Termini di Servizio e contestazioni
 
 `src/app/termini/page.tsx` contiene una bozza di Termini di Servizio (natura autocertificata
 del servizio, responsabilità di chi segnala, procedura di contestazione). **È un testo di
 partenza, non validato legalmente**: fallo rivedere da un professionista prima di pubblicare
-l'app. Il canale di contestazione è attualmente un semplice mailto (`supporto@slabok.app`,
-da sostituire con un indirizzo reale che monitori attivamente).
+l'app. Il canale di contestazione è attualmente un semplice mailto
+(`slabok.customerservice@gmail.com`).
 
 ## Pubblicità
 
@@ -115,6 +125,9 @@ Compila `.env` con:
 - `NEXTAUTH_SECRET`: casuale, es. con `openssl rand -base64 32`.
 - `DATABASE_URL`: stringa di connessione Postgres (vedi sezione Neon più sotto).
 - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`: dalla dashboard Cloudinary.
+- `GMAIL_USER` / `GMAIL_APP_PASSWORD`: account Gmail usato per inviare i codici di verifica
+  (la App Password si genera su myaccount.google.com/apppasswords, richiede la verifica in
+  due passaggi attiva).
 
 2. Installa le dipendenze:
 
@@ -158,7 +171,8 @@ la prima richiesta dopo una pausa impiega qualche decina di secondi in più a ri
 
 ## Possibili estensioni future
 
-- Verifica email in fase di registrazione.
+- Pannello di amministrazione (il campo `isAdmin` esiste già sullo schema e in sessione, ma
+  non c'è ancora un'interfaccia per moderare tutte le segnalazioni).
 - Stato "risolta" per le segnalazioni (oggi si può solo eliminare la segnalazione).
 - Rate limiting distribuito per deploy multi-istanza.
 - Canale di contestazione strutturato (form + storico) invece del semplice mailto.

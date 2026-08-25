@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTos, setAcceptedTos] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -15,12 +16,18 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Le due password non coincidono.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, acceptedTos }),
+        body: JSON.stringify({ email, password, confirmPassword, acceptedTos }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -28,12 +35,7 @@ export default function RegisterPage() {
         return;
       }
 
-      const signInRes = await signIn("credentials", { email, password, redirect: false });
-      if (signInRes?.error) {
-        router.push("/login");
-        return;
-      }
-      router.push("/dashboard");
+      router.push(`/verifica-email?email=${encodeURIComponent(email)}`);
     } catch {
       setError("Errore di rete. Riprova.");
     } finally {
@@ -57,15 +59,24 @@ export default function RegisterPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
-          <input
-            type="password"
+          <PasswordInput
+            value={password}
+            onChange={setPassword}
             required
             minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base"
+            autoComplete="new-password"
           />
           <p className="mt-1 text-xs text-slate-400">Almeno 8 caratteri.</p>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">Ripeti password</label>
+          <PasswordInput
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            required
+            minLength={8}
+            autoComplete="new-password"
+          />
         </div>
         <label className="flex items-start gap-2 text-sm text-slate-600">
           <input

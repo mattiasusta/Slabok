@@ -3,6 +3,12 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validation";
 import { rateLimit, getClientIp } from "@/lib/rateLimit";
+import {
+  generateVerificationCode,
+  hashVerificationCode,
+  sendVerificationEmail,
+  VERIFICATION_CODE_TTL_MS,
+} from "@/lib/email";
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
@@ -25,7 +31,26 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  await prisma.user.create({ data: { email, passwordHash, acceptedTosAt: new Date() } });
+  const code = generateVerificationCode();
 
-  return NextResponse.json({ ok: true });
+  await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      acceptedTosAt: new Date(),
+      emailVerificationCodeHash: hashVerificationCode(code),
+      emailVerificationCodeExpiresAt: new Date(Date.now() + VERIFICATION_CODE_TTL_MS),
+    },
+  });
+
+  try {
+    await sendVerificationEmail(email, code);
+  } catch {
+    return NextResponse.json(
+      { error: "Account creato ma l'invio dell'email di verifica è fallito. Riprova più tardi." },
+      { status: 502 }
+    );
+  }
+
+  return NextResponse.json({ ok: true, email });
 }

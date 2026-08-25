@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       signed: parsed.data.signed ?? false,
       signatureGrade: parsed.data.signed ? parsed.data.signatureGrade || null : null,
       description: parsed.data.description || null,
-      photoUrl: parsed.data.photoUrl,
+      photoUrl: parsed.data.photoUrl || null,
       contactPhone: parsed.data.contactPhone || null,
       reporterIp: ip,
       userId: session.user.id,

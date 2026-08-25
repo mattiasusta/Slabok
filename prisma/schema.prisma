@@ -14,6 +14,12 @@ model User {
   id            String       @id @default(cuid())
   email         String       @unique
   passwordHash  String
+  isAdmin       Boolean      @default(false)
+  // Null finché l'utente non conferma il codice inviato via email in fase di registrazione;
+  // il login è bloccato finché non è verificata (vedi src/lib/auth.ts).
+  emailVerifiedAt                DateTime?
+  emailVerificationCodeHash      String?
+  emailVerificationCodeExpiresAt DateTime?
   // Data di accettazione dei Termini di Servizio, per tutela legale in caso di controversie.
   acceptedTosAt DateTime
   createdAt     DateTime     @default(now())
@@ -35,8 +41,8 @@ model StolenCard {
   // Voto della firma, obbligatorio solo se signed = true.
   signatureGrade String?
   description    String?
-  // Foto obbligatoria, ospitata su Cloudinary.
-  photoUrl       String
+  // Foto facoltativa, ospitata su Cloudinary.
+  photoUrl       String?
   // Recapito facoltativo mostrato a chi verifica la carta, per essere ricontattati.
   contactPhone   String?
   status         String   @default("active") // active | resolved

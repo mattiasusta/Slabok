@@ -66,7 +66,7 @@ export const createCardSchema = z
     grade: z.enum(GRADES, { errorMap: () => ({ message: "Seleziona un voto valido." }) }),
     certUrl: z.string().url().max(500).optional().or(z.literal("")),
     description: z.string().max(500).optional().or(z.literal("")),
-    photoUrl: z.string().refine(isCloudinaryUrl, "Carica una foto valida della carta."),
+    photoUrl: z.string().refine(isCloudinaryUrl, "Carica una foto valida della carta.").optional().or(z.literal("")),
     contactPhone: z.string().regex(phoneRegex, "Numero di telefono non valido.").optional().or(z.literal("")),
     signed: z.boolean().optional().default(false),
     signatureGrade: z.enum(GRADES).optional().or(z.literal("")),
@@ -79,10 +79,27 @@ export const createCardSchema = z
     path: ["signatureGrade"],
   });
 
-export const registerSchema = z.object({
+export const registerSchema = z
+  .object({
+    email: z.string().email().max(255),
+    password: z.string().min(8).max(72),
+    confirmPassword: z.string(),
+    acceptedTos: z.literal(true, {
+      errorMap: () => ({ message: "Devi accettare i Termini di Servizio." }),
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Le due password non coincidono.",
+    path: ["confirmPassword"],
+  });
+
+const verificationCodeRegex = /^[0-9]{6}$/;
+
+export const verifyEmailSchema = z.object({
   email: z.string().email().max(255),
-  password: z.string().min(8).max(72),
-  acceptedTos: z.literal(true, {
-    errorMap: () => ({ message: "Devi accettare i Termini di Servizio." }),
-  }),
+  code: z.string().regex(verificationCodeRegex, "Il codice deve essere di 6 cifre."),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email().max(255),
 });

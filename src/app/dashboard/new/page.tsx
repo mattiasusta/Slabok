@@ -49,10 +49,6 @@ export default function NewCardPage() {
     e.preventDefault();
     setError(null);
 
-    if (!photoUrl) {
-      setError("Carica una foto della carta.");
-      return;
-    }
     if (!certifyOwnership) {
       setError("Devi dichiarare che la carta è di tua proprietà.");
       return;
@@ -194,11 +190,10 @@ export default function NewCardPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">Foto della carta</label>
+          <label className="mb-1 block text-sm font-medium text-slate-700">Foto della carta (opzionale)</label>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            required={!photoUrl}
             onChange={handlePhotoChange}
             className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-base file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-indigo-700"
           />
@@ -207,7 +202,7 @@ export default function NewCardPage() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={photoUrl} alt="Anteprima foto carta" className="mt-2 max-h-48 rounded-lg object-cover" />
           )}
-          <p className="mt-1 text-xs text-slate-400">Obbligatoria: JPG, PNG o WEBP, max 5 MB.</p>
+          <p className="mt-1 text-xs text-slate-400">Facoltativa: JPG, PNG o WEBP, max 5 MB.</p>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Recapito telefonico (opzionale)</label>
