@@ -1,0 +1,60 @@
+name: Weekly database backup
+
+on:
+  schedule:
+    # Ogni lunedì alle 03:00 UTC (04:00/05:00 ora italiana a seconda dell'ora legale).
+    - cron: "0 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch db-backups (se esiste)
+        id: checkout_backups
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: db-backups
+          fetch-depth: 0
+
+      - name: Checkout main (primo run, il branch db-backups non esiste ancora)
+        if: steps.checkout_backups.outcome == 'failure'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Crea il branch db-backups se manca
+        run: |
+          if ! git show-ref --verify --quiet refs/heads/db-backups; then
+            git checkout --orphan db-backups
+            git rm -rf . > /dev/null 2>&1 || true
+          fi
+
+      - name: Installa il client PostgreSQL
+        run: sudo apt-get update -y && sudo apt-get install -y postgresql-client
+
+      - name: Esegui il dump del database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          mkdir -p backups
+          pg_dump "$DATABASE_URL" --no-owner --no-privileges -Fc \
+            -f "backups/slabok-$(date -u +%Y-%m-%d).dump"
+
+      - name: Mantieni solo gli ultimi 12 backup (~3 mesi)
+        run: |
+          cd backups
+          ls -1t slabok-*.dump | tail -n +13 | xargs -r rm --
+
+      - name: Commit e push
+        run: |
+          git config user.name "slabok-backup-bot"
+          git config user.email "actions@github.com"
+          git add backups/
+          git commit -m "Backup database $(date -u +%Y-%m-%d)" || echo "Nessuna modifica da salvare"
+          git push origin HEAD:db-backups

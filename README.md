@@ -176,6 +176,32 @@ Al primo deploy, il comando di build (`npm run db:push`) crea automaticamente le
 database Neon. Il piano gratuito Render "addormenta" il servizio dopo 15 minuti di inattività:
 la prima richiesta dopo una pausa impiega qualche decina di secondi in più a rispondere.
 
+## Backup automatico del database
+
+`.github/workflows/db-backup.yml` esegue un dump completo del database Postgres ogni lunedì
+(gratuito, tramite GitHub Actions) e lo salva nel branch `db-backups` del repository, nella
+cartella `backups/` (mantiene gli ultimi 12 backup, circa 3 mesi di storico). Serve come rete di
+sicurezza indipendente da Neon, e permette di migrare i dati verso un altro database/hosting in
+futuro senza dipendere da un provider specifico.
+
+**Configurazione richiesta (una tantum)**: su GitHub, vai su Settings del repository → Secrets
+and variables → Actions → "New repository secret" → nome `DATABASE_URL`, valore la stessa
+stringa di connessione Postgres usata in `.env`/su Render. Verifica anche che Settings → Actions
+→ General → "Workflow permissions" sia impostato su "Read and write permissions", altrimenti il
+workflow non riesce a salvare il backup nel branch.
+
+Il workflow si può anche lanciare manualmente (tab "Actions" del repository → "Weekly database
+backup" → "Run workflow"), utile per un primo backup immediato o per testare che funzioni.
+
+**Ripristino di un backup**: scarica il file `.dump` dal branch `db-backups`, poi:
+
+```bash
+pg_restore --clean --if-exists --no-owner --no-privileges -d "DATABASE_URL_DI_DESTINAZIONE" nome-file.dump
+```
+
+Richiede `pg_restore` installato in locale (incluso con PostgreSQL, o `sudo apt install postgresql-client`
+su Linux/WSL).
+
 ## Possibili estensioni future
 
 - Pannello di amministrazione (il campo `isAdmin` esiste già sullo schema e in sessione, ma
