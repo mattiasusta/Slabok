@@ -53,7 +53,7 @@ export function SearchForm() {
   }
 
   const disputeHref = result?.reportId
-    ? `mailto:slabok.customerservice@gmail.com?subject=${encodeURIComponent(
+    ? `mailto:slabok.cstservice@gmail.com?subject=${encodeURIComponent(
         `Contestazione segnalazione ${company} #${cert}`
       )}&body=${encodeURIComponent(
         `Vorrei contestare la segnalazione con id ${result.reportId} (compagnia ${company}, certificato ${cert}).\n\nMotivo:\n`

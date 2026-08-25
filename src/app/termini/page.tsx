@@ -40,8 +40,8 @@ export default function TerminiPage() {
           stata ritrovata, la segnalazione è errata o in mala fede), puoi contestarla usando il
           link &quot;Contesta questa segnalazione&quot; mostrato accanto al risultato, oppure
           scrivendo direttamente a{" "}
-          <a href="mailto:slabok.customerservice@gmail.com" className="text-indigo-600 hover:underline">
-            slabok.customerservice@gmail.com
+          <a href="mailto:slabok.cstservice@gmail.com" className="text-indigo-600 hover:underline">
+            slabok.cstservice@gmail.com
           </a>
           , indicando compagnia di grading e numero di certificato. Valuteremo la richiesta e, se
           fondata, rimuoveremo la segnalazione.

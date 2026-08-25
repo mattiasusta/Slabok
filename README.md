@@ -98,7 +98,7 @@ render.yaml                      Blueprint di deploy per Render
 del servizio, responsabilità di chi segnala, procedura di contestazione). **È un testo di
 partenza, non validato legalmente**: fallo rivedere da un professionista prima di pubblicare
 l'app. Il canale di contestazione è attualmente un semplice mailto
-(`slabok.customerservice@gmail.com`).
+(`slabok.cstservice@gmail.com`).
 
 ## Pubblicità
 
