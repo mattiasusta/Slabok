@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Postgres (es. Neon, piano gratuito): necessario per il deploy su piattaforme
+  // senza disco persistente (Render free tier, serverless, ecc.), a differenza di
+  // SQLite che richiede un file locale persistente.
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  passwordHash  String
+  // Data di accettazione dei Termini di Servizio, per tutela legale in caso di controversie.
+  acceptedTosAt DateTime
+  createdAt     DateTime     @default(now())
+  cards         StolenCard[]
+}
+
+model StolenCard {
+  id             String   @id @default(cuid())
+  // Compagnia e voto restano stringhe validate a livello applicativo (vedi
+  // src/lib/validation.ts) invece di enum nativi Postgres, per semplicità.
+  gradingCompany String
+  certNumber     String
+  cardName       String
+  // Voto: "AUTHENTIC" oppure un valore da 1 a 10 (anche con mezzi punti, es. "8.5").
+  grade          String
+  // Link alla pagina di verifica del certificato sul sito della compagnia di grading.
+  certUrl        String?
+  signed         Boolean  @default(false)
+  // Voto della firma, obbligatorio solo se signed = true.
+  signatureGrade String?
+  description    String?
+  // Foto obbligatoria, ospitata su Cloudinary.
+  photoUrl       String
+  // Recapito facoltativo mostrato a chi verifica la carta, per essere ricontattati.
+  contactPhone   String?
+  status         String   @default("active") // active | resolved
+  createdAt      DateTime @default(now())
+
+  // IP di chi ha inviato la segnalazione: non esposto pubblicamente, conservato solo
+  // a fini di audit in caso di contestazione o abuso.
+  reporterIp String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Impedisce di segnalare due volte la stessa carta (stessa compagnia + certificato).
+  @@unique([gradingCompany, certNumber])
+  @@index([gradingCompany, certNumber])
+}
