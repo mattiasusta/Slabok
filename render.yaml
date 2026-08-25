@@ -20,9 +20,9 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: GMAIL_USER
+      - key: EMAIL_FROM_ADDRESS
         sync: false
-      - key: GMAIL_APP_PASSWORD
+      - key: BREVO_API_KEY
         sync: false
       - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
         sync: false

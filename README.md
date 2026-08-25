@@ -131,9 +131,10 @@ Compila `.env` con:
 - `NEXTAUTH_SECRET`: casuale, es. con `openssl rand -base64 32`.
 - `DATABASE_URL`: stringa di connessione Postgres (vedi sezione Neon più sotto).
 - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`: dalla dashboard Cloudinary.
-- `GMAIL_USER` / `GMAIL_APP_PASSWORD`: account Gmail usato per inviare i codici di verifica
-  (la App Password si genera su myaccount.google.com/apppasswords, richiede la verifica in
-  due passaggi attiva).
+- `EMAIL_FROM_ADDRESS` / `BREVO_API_KEY`: invio dei codici di verifica via API HTTP di Brevo
+  (non SMTP, per evitare i blocchi sulle porte SMTP in uscita di molti host gratuiti — Render
+  incluso, verificato empiricamente). L'indirizzo va verificato come mittente su Brevo
+  (basta un'email di conferma, non serve un dominio).
 
 2. Installa le dipendenze:
 
