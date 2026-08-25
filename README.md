@@ -92,11 +92,16 @@ da sostituire con un indirizzo reale che monitori attivamente).
 
 ## Pubblicità
 
-Il monetization model è basato solo su ads (nessun abbonamento/premium). Il componente
-`src/components/AdSlot.tsx` è un placeholder non invasivo (banner in home, box in dashboard):
-sostituiscine il contenuto con lo script/tag reale di Google AdSense (o altro network) usando
-la variabile `NEXT_PUBLIC_ADSENSE_CLIENT_ID`. Prima di attivare qualsiasi network pubblicitario
-serve un banner di consenso cookie conforme GDPR.
+Il monetization model è basato solo su ads (nessun abbonamento/premium). Integrazione AdSense
+già pronta e disattivata di default:
+
+- `src/components/CookieConsent.tsx` mostra un banner di consenso cookie (richiesto dal GDPR)
+  al primo utilizzo; lo script AdSense si carica solo dopo che l'utente ha cliccato "Accetta".
+- `src/components/AdSlot.tsx` mostra un placeholder ("Spazio pubblicitario") finché non sono
+  configurate le variabili `NEXT_PUBLIC_ADSENSE_CLIENT_ID`, `NEXT_PUBLIC_ADSENSE_SLOT_BANNER` e
+  `NEXT_PUBLIC_ADSENSE_SLOT_BOX` — una volta impostate (dopo l'approvazione di un account
+  AdSense e la creazione di due unità annuncio, una per il banner in home e una per il box in
+  dashboard), mostra automaticamente gli annunci reali, senza altre modifiche al codice.
 
 ## Avvio in locale
 

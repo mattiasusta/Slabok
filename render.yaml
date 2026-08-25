@@ -22,3 +22,7 @@ services:
         sync: false
       - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
         sync: false
+      - key: NEXT_PUBLIC_ADSENSE_SLOT_BANNER
+        sync: false
+      - key: NEXT_PUBLIC_ADSENSE_SLOT_BOX
+        sync: false
