@@ -45,8 +45,10 @@ export default async function DashboardPage() {
             description: c.description,
             photoUrl: c.photoUrl,
             contactPhone: c.contactPhone,
+            status: c.status,
             createdAt: c.createdAt.toISOString(),
           }))}
+          searchable
         />
       )}
 

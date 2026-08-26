@@ -118,3 +118,12 @@ export const verifyEmailSchema = z.object({
 export const resendVerificationSchema = z.object({
   email: z.string().email().max(255),
 });
+
+// Stato di moderazione di una segnalazione: le nuove segnalazioni di utenti non admin
+// restano "pending" (invisibili alla verifica pubblica) finché un admin non le approva.
+export const CARD_STATUSES = ["pending", "active", "rejected"] as const;
+export type CardStatus = (typeof CARD_STATUSES)[number];
+
+export const updateStatusSchema = z.object({
+  status: z.enum(CARD_STATUSES, { errorMap: () => ({ message: "Stato non valido." }) }),
+});

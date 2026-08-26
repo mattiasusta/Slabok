@@ -65,6 +65,10 @@ export async function POST(req: Request) {
       contactPhone: parsed.data.contactPhone || null,
       reporterIp: ip,
       userId: session.user.id,
+      // Le segnalazioni degli admin sono pubblicate subito; quelle degli altri utenti
+      // restano in attesa di approvazione (invisibili alla verifica pubblica) finché un
+      // admin non le revisiona dalla dashboard di amministrazione.
+      status: session.user.isAdmin ? "active" : "pending",
     },
   });
 
