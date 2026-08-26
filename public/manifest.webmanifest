@@ -1,0 +1,23 @@
+{
+  "name": "SLABOK — Verifica carte rubate",
+  "short_name": "SLABOK",
+  "description": "Controlla in pochi secondi se una carta graduta risulta rubata prima di acquistarla.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#00308C",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

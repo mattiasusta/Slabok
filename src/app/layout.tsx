@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/Navbar";
@@ -13,6 +13,16 @@ export const metadata: Metadata = {
   // Verifica proprietà del sito per Google AdSense: un meta tag statico, a differenza
   // dello snippet di script AdSense, non carica nulla e non richiede consenso cookie.
   other: adsenseClientId ? { "google-adsense-account": adsenseClientId } : {},
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SLABOK",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#00308C",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
