@@ -25,7 +25,9 @@ src/
     termini/page.tsx              Termini di Servizio
     dashboard/page.tsx           Elenco segnalazioni dell'utente (protetto)
     dashboard/new/page.tsx       Form nuova segnalazione (protetto)
-    dashboard/edit/[id]/page.tsx Modifica segnalazione esistente (protetto, solo proprietario)
+    dashboard/edit/[id]/page.tsx Modifica segnalazione esistente (protetto, proprietario o admin)
+    admin/page.tsx               Tutte le segnalazioni di tutti gli utenti, raggruppate per
+                                  utente (protetto, solo isAdmin)
     api/
       auth/[...nextauth]/        NextAuth
       register/route.ts          Registrazione (crea utente non verificato, invia codice)
@@ -33,12 +35,14 @@ src/
       resend-verification/route.ts  Reinvio codice
       check/route.ts             Verifica pubblica (GET, no auth)
       cards/route.ts             Lista + creazione segnalazioni (protetto)
-      cards/[id]/route.ts        Modifica (PATCH) e cancellazione (DELETE) (protetto)
+      cards/[id]/route.ts        Modifica (PATCH) e cancellazione (DELETE) (protetto,
+                                  proprietario o admin)
       upload/route.ts            Upload foto su Cloudinary (protetto)
-  components/                    Navbar (con le due schede "Verifica" / "Le mie segnalazioni"
-                                  per utenti autenticati), Footer, SearchForm, CardForm
-                                  (condiviso da creazione e modifica), CardList, AdSlot,
-                                  CookieConsent, PasswordInput
+  components/                    Navbar (con le schede "Verifica" / "Le mie segnalazioni" /
+                                  "Amministrazione" per utenti autenticati, l'ultima solo per
+                                  gli admin), Footer, SearchForm, CardForm (condiviso da
+                                  creazione e modifica), CardList, AdSlot, CookieConsent,
+                                  PasswordInput
   lib/                           prisma client, auth options, validazione, rate limit,
                                   uploads, email (invio codici verifica)
 prisma/
@@ -204,8 +208,6 @@ su Linux/WSL).
 
 ## Possibili estensioni future
 
-- Pannello di amministrazione (il campo `isAdmin` esiste già sullo schema e in sessione, ma
-  non c'è ancora un'interfaccia per moderare tutte le segnalazioni).
 - Stato "risolta" per le segnalazioni (oggi si può solo eliminare la segnalazione).
 - Rate limiting distribuito per deploy multi-istanza.
 - Canale di contestazione strutturato (form + storico) invece del semplice mailto.

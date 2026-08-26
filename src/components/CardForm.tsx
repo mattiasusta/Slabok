@@ -112,7 +112,11 @@ export function CardForm({ mode, cardId, initialData }: CardFormProps) {
         setError(data.error || "Errore durante il salvataggio.");
         return;
       }
-      router.push("/dashboard");
+      if (mode === "edit") {
+        router.back();
+      } else {
+        router.push("/dashboard");
+      }
       router.refresh();
     } catch {
       setError("Errore di rete. Riprova.");

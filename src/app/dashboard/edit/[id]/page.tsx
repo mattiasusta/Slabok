@@ -11,7 +11,7 @@ export default async function EditCardPage({ params }: { params: Promise<{ id: s
   const { id } = await params;
   const card = await prisma.stolenCard.findUnique({ where: { id } });
 
-  if (!card || card.userId !== session.user.id) {
+  if (!card || (card.userId !== session.user.id && !session.user.isAdmin)) {
     notFound();
   }
 

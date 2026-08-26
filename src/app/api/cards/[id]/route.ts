@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
 
   const existing = await prisma.stolenCard.findUnique({ where: { id } });
-  if (!existing || existing.userId !== session.user.id) {
+  if (!existing || (existing.userId !== session.user.id && !session.user.isAdmin)) {
     return NextResponse.json({ error: "Segnalazione non trovata." }, { status: 404 });
   }
 
@@ -56,7 +56,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   const card = await prisma.stolenCard.findUnique({ where: { id } });
-  if (!card || card.userId !== session.user.id) {
+  if (!card || (card.userId !== session.user.id && !session.user.isAdmin)) {
     return NextResponse.json({ error: "Segnalazione non trovata." }, { status: 404 });
   }
 

@@ -57,6 +57,18 @@ export function Navbar() {
           >
             Le mie segnalazioni
           </Link>
+          {session?.user?.isAdmin && (
+            <Link
+              href="/admin"
+              className={`flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium ${
+                pathname?.startsWith("/admin")
+                  ? "bg-indigo-600 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              Amministrazione
+            </Link>
+          )}
         </div>
       )}
     </header>
