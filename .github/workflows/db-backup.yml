@@ -35,8 +35,18 @@ jobs:
             git rm -rf . > /dev/null 2>&1 || true
           fi
 
-      - name: Installa il client PostgreSQL
-        run: sudo apt-get update -y && sudo apt-get install -y postgresql-client
+      - name: Installa il client PostgreSQL (versione 18, come il server Neon)
+        # Il pacchetto postgresql-client di default su Ubuntu è troppo vecchio per fare il
+        # dump di un server Postgres più recente (pg_dump rifiuta di collegarsi a un server
+        # con major version superiore alla propria): serve il repository ufficiale PGDG.
+        # Se in futuro Neon aggiorna a una major version successiva, aggiornare "-18" qui sotto.
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client-18
 
       - name: Esegui il dump del database
         env:
