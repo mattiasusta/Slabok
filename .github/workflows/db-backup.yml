@@ -47,6 +47,9 @@ jobs:
           sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update -y
           sudo apt-get install -y postgresql-client-18
+          # Il runner ha già un pg_dump più vecchio in PATH: mettiamo la versione 18 davanti
+          # a tutto, altrimenti "pg_dump" continua a risolvere a quello vecchio.
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
 
       - name: Esegui il dump del database
         env:
